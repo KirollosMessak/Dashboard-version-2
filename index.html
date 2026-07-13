@@ -367,14 +367,15 @@
       <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
 
         <div class="dropdown">
-          <button class="gg-icon-btn" type="button" data-bs-toggle="dropdown" title="Notifications" aria-label="Notifications">
+          <button class="gg-icon-btn" type="button" id="notifBellBtn" data-bs-toggle="dropdown" title="Notifications" aria-label="Notifications">
             <i class="ti ti-bell"></i>
           </button>
-          <div class="dropdown-menu dropdown-menu-end p-3" style="width:260px;">
-            <div class="gg-empty" style="padding:.5rem 0;">
-              <div class="gg-empty-icon" style="width:42px;height:42px;font-size:1.1rem;"><i class="ti ti-bell-off"></i></div>
-              <div class="gg-empty-title" style="font-size:.85rem;">No notifications yet</div>
-              <div class="gg-empty-desc" style="font-size:.74rem;">You'll see order alerts and system updates here once notifications are enabled.</div>
+          <div class="dropdown-menu dropdown-menu-end p-2" style="width:300px;">
+            <div id="notifDropdownBody" style="max-height:320px; overflow-y:auto;">
+              <div class="gg-empty" style="padding:1rem 0;">
+                <div class="gg-skel" style="width:42px;height:42px;border-radius:50%;margin:0 auto .6rem;"></div>
+                <div class="gg-skel gg-skel-text" style="margin:0 auto;"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -515,12 +516,7 @@
                   </div>
                   <div class="col-lg-6">
                     <div class="text-secondary mb-2" style="font-size:.8rem; font-weight:600;">Inventory alerts</div>
-                    <div class="gg-empty" style="padding:1.2rem .5rem;">
-                      <div class="gg-empty-icon"><i class="ti ti-package"></i></div>
-                      <div class="gg-empty-title" style="font-size:.85rem;">No inventory source connected</div>
-                      <div class="gg-empty-desc" style="font-size:.76rem;">Low-stock and out-of-stock alerts will appear here once an inventory feed is linked.</div>
-                      <button type="button" class="btn btn-sm btn-outline-secondary gg-ent-link" data-feature="Integrations" data-desc="Connect GreenGo to your POS or inventory system to unlock stock alerts.">Connect a source</button>
-                    </div>
+                    <div id="inventoryAlertsBox"><div class="gg-skel gg-skel-row"></div><div class="gg-skel gg-skel-row"></div></div>
                   </div>
                 </div>
 
@@ -624,14 +620,22 @@
                   </form>
                 </div>
 
-                <!-- MARKETING ASSISTANT (UI-ready, not yet connected) -->
+                <!-- MARKETING ASSISTANT -->
                 <div class="tab-pane fade" id="tab-marketing">
-                  <div class="gg-empty">
-                    <div class="gg-empty-icon"><i class="ti ti-speakerphone"></i></div>
-                    <div class="gg-empty-title">Marketing Assistant is coming soon</div>
-                    <div class="gg-empty-desc">This will help draft campaigns, captions, and promos for GreenGo's channels. The interface is ready — it just needs a backend workflow connected.</div>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" disabled><i class="ti ti-clock"></i> Not connected yet</button>
+                  <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button type="button" class="gg-chip" data-fill="marketingChatInput" data-prompt="Write 3 Instagram captions for fresh strawberries.">Instagram captions</button>
+                    <button type="button" class="gg-chip" data-fill="marketingChatInput" data-prompt="Give me a weekend promo idea for salad boxes.">Weekend promo idea</button>
+                    <button type="button" class="gg-chip" data-fill="marketingChatInput" data-prompt="Draft a short campaign around mango season.">Mango season campaign</button>
                   </div>
+                  <div id="marketingChatLog" class="mb-3"></div>
+                  <div id="marketingChatPlaceholderNote" class="placeholder-note mb-2" style="display:none;">
+                    <i class="ti ti-plug-connected-x"></i> Marketing assistant endpoint isn't wired up yet.
+                  </div>
+                  <form id="marketingChatForm" class="input-group">
+                    <input type="text" id="marketingChatInput" class="form-control" placeholder="e.g. write captions for this week's mango promo" autocomplete="off" />
+                    <button class="btn" style="background:var(--gg-violet); border-color:var(--gg-violet); color:#fff;" type="submit"><i class="ti ti-send"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" id="closeMarketingChatBtn" title="New conversation" style="display:none;"><i class="ti ti-plus"></i></button>
+                  </form>
                 </div>
 
               </div>
@@ -790,13 +794,239 @@ let enterpriseModal;
 document.addEventListener('DOMContentLoaded', () => {
   if (window.bootstrap) enterpriseModal = new bootstrap.Modal(enterpriseModalEl);
 });
+function openEnterpriseModal(title, htmlBody) {
+  document.getElementById('enterpriseModalTitle').textContent = title;
+  document.getElementById('enterpriseModalDesc').innerHTML = htmlBody;
+  if (enterpriseModal) enterpriseModal.show();
+}
+
+async function showAuditLogsModal() {
+  openEnterpriseModal('Audit Logs', '<div class="text-center py-2"><span class="spinner-border spinner-border-sm"></span></div>');
+  try {
+    const res = await fetch(AUDIT_LOGS_URL, { method: 'GET' });
+    if (!res.ok) throw new Error('not connected');
+    const data = await res.json();
+    const rows = (data.logs || []).map(l => `
+      <div class="gg-cust-row" style="text-align:left;">
+        <div class="gg-cust-avatar"><i class="ti ti-history" style="font-size:.8rem;"></i></div>
+        <div>
+          <div class="gg-cust-name">${l.actor ?? ''} — ${l.action ?? ''}</div>
+          <div class="gg-cust-sub">${l.target ?? ''} · ${new Date(l.timestamp).toLocaleString()}</div>
+        </div>
+      </div>`).join('');
+    document.getElementById('enterpriseModalDesc').innerHTML = `<div style="max-height:320px; overflow-y:auto; text-align:left;">${rows || 'No log entries yet.'}</div><div class="text-secondary mt-2" style="font-size:.72rem;">Sample/test data from the n8n workflow — not a live audit feed yet.</div>`;
+  } catch (e) {
+    document.getElementById('enterpriseModalDesc').textContent = 'Could not reach the audit log endpoint right now.';
+  }
+}
+
+async function showReportsModal() {
+  openEnterpriseModal('Weekly Report', '<div class="text-center py-2"><span class="spinner-border spinner-border-sm"></span></div>');
+  try {
+    const res = await fetch(WEEKLY_REPORT_URL, { method: 'GET' });
+    if (!res.ok) throw new Error('not connected');
+    const r = await res.json();
+    document.getElementById('enterpriseModalDesc').innerHTML = `
+      <div style="text-align:left;">
+        <div class="text-secondary mb-2">${r.period ?? ''}</div>
+        <div class="gg-cust-row"><div class="gg-cust-name">Total revenue</div><div class="gg-cust-amount ms-auto">${Number(r.total_revenue ?? 0).toLocaleString()}</div></div>
+        <div class="gg-cust-row"><div class="gg-cust-name">Total orders</div><div class="gg-cust-amount ms-auto">${r.total_orders ?? 0}</div></div>
+        <div class="gg-cust-row"><div class="gg-cust-name">Avg order value</div><div class="gg-cust-amount ms-auto">${Number(r.avg_order_value ?? 0).toLocaleString()}</div></div>
+        <div class="gg-cust-row"><div class="gg-cust-name">Top product</div><div class="gg-cust-amount ms-auto">${r.top_product ?? '—'}</div></div>
+        <div class="gg-cust-row"><div class="gg-cust-name">Top channel</div><div class="gg-cust-amount ms-auto">${r.top_channel ?? '—'}</div></div>
+        <div class="text-secondary mt-2" style="font-size:.72rem;">Sample/test data from the n8n workflow, generated ${new Date(r.generated_at).toLocaleString()}.</div>
+      </div>`;
+  } catch (e) {
+    document.getElementById('enterpriseModalDesc').textContent = 'Could not reach the weekly report endpoint right now.';
+  }
+}
+
+async function showForecastModal() {
+  openEnterpriseModal('Revenue Forecast', '<div class="text-center py-2"><span class="spinner-border spinner-border-sm"></span></div>');
+  try {
+    const res = await fetch(FORECAST_URL, { method: 'GET' });
+    if (!res.ok) throw new Error('not connected');
+    const f = await res.json();
+    const rows = (f.forecast || []).map(d => `
+      <div class="gg-cust-row"><div class="gg-cust-name">${d.date}</div><div class="gg-cust-amount ms-auto">${Number(d.predicted_revenue ?? 0).toLocaleString()}</div></div>`).join('');
+    document.getElementById('enterpriseModalDesc').innerHTML = `
+      <div style="text-align:left;">
+        <div class="gg-cust-row"><div class="gg-cust-name">Predicted total (next 7 days)</div><div class="gg-cust-amount ms-auto">${Number(f.total_predicted_next_7_days ?? 0).toLocaleString()}</div></div>
+        <div style="max-height:220px; overflow-y:auto; margin-top:.4rem;">${rows}</div>
+        <div class="text-secondary mt-2" style="font-size:.72rem;">${f.basis ?? ''}</div>
+      </div>`;
+  } catch (e) {
+    document.getElementById('enterpriseModalDesc').textContent = 'Could not reach the forecast endpoint right now.';
+  }
+}
+
+function exportSheetsToCsv() {
+  if (!latestSheetsData) {
+    showToast('info', 'Exports', 'Load the Sales Analytics data first (it loads automatically), then try exporting again.');
+    return;
+  }
+  function toCsv(rows) {
+    if (!rows || rows.length === 0) return '';
+    const headers = Object.keys(rows[0]);
+    const lines = [headers.join(',')];
+    rows.forEach(r => lines.push(headers.map(h => `"${String(r[h] ?? '').replace(/"/g, '""')}"`).join(',')));
+    return lines.join('\n');
+  }
+  const parts = [
+    '# Sales Orders', toCsv(latestSheetsData.sales_orders || []),
+    '', '# Order Lines', toCsv(latestSheetsData.order_lines || []),
+    '', '# KPIs', toCsv(latestSheetsData.kpis || [])
+  ];
+  const blob = new Blob([parts.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'greengo-dashboard-export.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('success', 'Exports', 'Downloaded greengo-dashboard-export.csv');
+}
+
 document.querySelectorAll('.gg-ent-link').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.getElementById('enterpriseModalTitle').textContent = btn.dataset.feature || 'Feature';
+    const feature = btn.dataset.feature || 'Feature';
+    if (feature === 'Audit Logs') { showAuditLogsModal(); return; }
+    if (feature === 'Reports') { showReportsModal(); return; }
+    if (feature === 'Exports') { exportSheetsToCsv(); return; }
+    document.getElementById('enterpriseModalTitle').textContent = feature;
     document.getElementById('enterpriseModalDesc').textContent = btn.dataset.desc || 'This feature is coming soon.';
     if (enterpriseModal) enterpriseModal.show();
-    else showToast('info', btn.dataset.feature || 'Feature', btn.dataset.desc || 'Coming soon.');
+    else showToast('info', feature, btn.dataset.desc || 'Coming soon.');
   });
+});
+
+// ---------- NOTIFICATIONS ----------
+async function loadNotifications() {
+  const box = document.getElementById('notifDropdownBody');
+  const bell = document.getElementById('notifBellBtn');
+  try {
+    const res = await fetch(NOTIFICATIONS_URL, { method: 'GET' });
+    if (!res.ok) throw new Error('not connected');
+    const data = await res.json();
+    const items = data.notifications || [];
+    const existingDot = bell.querySelector('.badge-dot');
+    if (existingDot) existingDot.remove();
+    if (data.unread_count > 0) {
+      const dot = document.createElement('span');
+      dot.className = 'badge-dot';
+      bell.appendChild(dot);
+    }
+    if (items.length === 0) {
+      box.innerHTML = `<div class="gg-empty" style="padding:1rem 0;"><div class="gg-empty-icon" style="width:42px;height:42px;font-size:1.1rem;"><i class="ti ti-bell-off"></i></div><div class="gg-empty-title" style="font-size:.85rem;">No notifications yet</div></div>`;
+      return;
+    }
+    const iconFor = t => t === 'inventory' ? 'ti-package' : t === 'competitor' ? 'ti-telescope' : t === 'order' ? 'ti-receipt' : 'ti-info-circle';
+    box.innerHTML = items.map(n => `
+      <div class="dropdown-item" style="white-space:normal; cursor:default; opacity:${n.read ? '.65' : '1'};">
+        <div class="d-flex gap-2">
+          <i class="ti ${iconFor(n.type)}" style="color:var(--gg-green); margin-top:.15rem;"></i>
+          <div>
+            <div style="font-size:.8rem; font-weight:650;">${n.title ?? ''}</div>
+            <div style="font-size:.74rem; color:var(--gg-muted);">${n.message ?? ''}</div>
+            <div style="font-size:.68rem; color:var(--gg-muted); margin-top:.1rem;">${new Date(n.timestamp).toLocaleString()}</div>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    box.innerHTML = `<div class="gg-empty" style="padding:1rem 0;"><div class="gg-empty-desc">Could not reach the notifications endpoint.</div></div>`;
+  }
+}
+
+// ---------- INVENTORY ALERTS ----------
+async function loadInventory() {
+  const box = document.getElementById('inventoryAlertsBox');
+  try {
+    const res = await fetch(INVENTORY_URL, { method: 'GET' });
+    if (!res.ok) throw new Error('not connected');
+    const data = await res.json();
+    const alerts = data.alerts || [];
+    if (alerts.length === 0) {
+      box.innerHTML = `<div class="gg-empty" style="padding:1rem .5rem;"><div class="gg-empty-icon"><i class="ti ti-circle-check"></i></div><div class="gg-empty-title" style="font-size:.85rem;">All stock levels look healthy</div></div>`;
+      return alerts;
+    }
+    box.innerHTML = alerts.map(p => {
+      const badge = p.status === 'out_of_stock' ? 'danger' : 'orange';
+      const label = p.status === 'out_of_stock' ? 'Out of stock' : 'Low stock';
+      return `
+        <div class="gg-cust-row">
+          <div class="gg-cust-avatar"><i class="ti ti-alert-triangle" style="font-size:.8rem; color:var(--gg-orange);"></i></div>
+          <div>
+            <div class="gg-cust-name">${p.product}</div>
+            <div class="gg-cust-sub">${p.stock} in stock · reorder at ${p.reorder_threshold}</div>
+          </div>
+          <span class="badge bg-${badge}-lt ms-auto">${label}</span>
+        </div>`;
+    }).join('');
+    return alerts;
+  } catch (e) {
+    box.innerHTML = `<div class="gg-empty" style="padding:1rem .5rem;"><div class="gg-empty-desc">Could not reach the inventory endpoint.</div></div>`;
+    return [];
+  }
+}
+
+// ---------- MARKETING ASSISTANT CHAT ----------
+const marketingChatForm = document.getElementById('marketingChatForm');
+const marketingChatInput = document.getElementById('marketingChatInput');
+const marketingChatLog = document.getElementById('marketingChatLog');
+const marketingChatNote = document.getElementById('marketingChatPlaceholderNote');
+const closeMarketingChatBtn = document.getElementById('closeMarketingChatBtn');
+
+function appendMarketingBubble(text, who) {
+  const row = document.createElement('div');
+  row.className = 'gg-msg-row ' + (who === 'user' ? 'user' : '');
+  const avatar = who === 'user' ? '' : `<div class="gg-msg-avatar" style="background:var(--gg-violet);"><i class="ti ti-speakerphone" style="font-size:.7rem;"></i></div>`;
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble ' + (who === 'user' ? 'user' : 'bot');
+  bubble.textContent = text;
+  row.innerHTML = avatar;
+  row.appendChild(bubble);
+  marketingChatLog.appendChild(row);
+  marketingChatLog.scrollTop = marketingChatLog.scrollHeight;
+  return bubble;
+}
+
+async function submitMarketingChat(msg) {
+  appendMarketingBubble(msg, 'user');
+  closeMarketingChatBtn.style.display = '';
+  const typingRow = appendTyping(marketingChatLog, '', 'ti-speakerphone');
+  typingRow.querySelector('.gg-msg-avatar').style.background = 'var(--gg-violet)';
+  try {
+    const res = await fetch(MARKETING_CHAT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, session_id: marketingSessionId })
+    });
+    if (!res.ok) throw new Error('not connected');
+    const data = await res.json();
+    typingRow.remove();
+    appendMarketingBubble(data.reply ?? '(no reply)', 'bot');
+    marketingChatNote.style.display = 'none';
+  } catch (err) {
+    typingRow.remove();
+    marketingChatNote.style.display = 'block';
+    appendMarketingBubble("Sorry, the marketing assistant isn't connected yet.", 'bot');
+    showToast('error', 'Marketing Assistant', "Could not reach the marketing assistant backend.");
+  }
+}
+
+marketingChatForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const msg = marketingChatInput.value.trim();
+  if (!msg) return;
+  marketingChatInput.value = '';
+  submitMarketingChat(msg);
+});
+
+closeMarketingChatBtn.addEventListener('click', () => {
+  marketingChatLog.innerHTML = '';
+  marketingChatNote.style.display = 'none';
+  marketingSessionId = 'tabler-marketing-' + Math.random().toString(36).slice(2, 10);
+  closeMarketingChatBtn.style.display = 'none';
 });
 
 // ---------- SIGN OUT (clears the real session cookie set by middleware.js) ----------
@@ -813,8 +1043,15 @@ const COMPETITOR_CHAT_URL = N8N_BASE + '/tabler-competitor-chat';
 const IMAGE_URL = N8N_BASE + '/tabler-generate-image';
 const CHARTS_URL = N8N_BASE + '/tabler-charts-data';
 const SHEETS_URL = N8N_BASE + '/tabler-sheets-data';
+const NOTIFICATIONS_URL = N8N_BASE + '/tabler-notifications';
+const AUDIT_LOGS_URL = N8N_BASE + '/tabler-audit-logs';
+const INVENTORY_URL = N8N_BASE + '/tabler-inventory-data';
+const FORECAST_URL = N8N_BASE + '/tabler-revenue-forecast';
+const WEEKLY_REPORT_URL = N8N_BASE + '/tabler-weekly-report';
+const MARKETING_CHAT_URL = N8N_BASE + '/tabler-marketing-chat';
 let sessionId = 'tabler-dash-' + Math.random().toString(36).slice(2, 10);
 let competitorSessionId = 'tabler-competitor-' + Math.random().toString(36).slice(2, 10);
+let marketingSessionId = 'tabler-marketing-' + Math.random().toString(36).slice(2, 10);
 
 const KPI_ICONS = [
   { icon: 'ti-currency-dollar', bg: 'rgba(47,158,68,.12)', color: 'var(--gg-green)' },
@@ -899,6 +1136,8 @@ document.getElementById('refreshBtn').addEventListener('click', () => {
   loadKpis();
   loadCharts();
   loadTables();
+  loadNotifications();
+  loadInventory();
 });
 
 // ---------- GRAPHS ----------
@@ -1101,6 +1340,8 @@ async function loadTables() {
 document.addEventListener('DOMContentLoaded', () => {
   loadKpis();
   loadCharts().then(loadTables);
+  loadNotifications();
+  loadInventory();
 });
 
 // ---------- CHAT (Sales Assistant) ----------
@@ -1239,6 +1480,7 @@ document.querySelectorAll('.gg-chip').forEach(chip => {
     input.value = chip.dataset.prompt;
     if (targetId === 'chatInput') submitChat(chip.dataset.prompt).then(() => { input.value = ''; });
     else if (targetId === 'competitorChatInput') submitCompetitorChat(chip.dataset.prompt).then(() => { input.value = ''; });
+    else if (targetId === 'marketingChatInput') submitMarketingChat(chip.dataset.prompt).then(() => { input.value = ''; });
   });
 });
 
@@ -1320,18 +1562,24 @@ document.querySelectorAll('[data-qa]').forEach(btn => {
         document.getElementById('tab-competitor').scrollIntoView({ behavior: 'smooth', block: 'center' });
         break;
       case 'social-campaign':
-        document.getElementById('imageGeneratorCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        document.getElementById('imageWord').focus();
-        showToast('info', 'Social Media Campaign', 'Pick a product below and generate an on-brand image to kick off your campaign.');
+        activateTab('#tab-marketing');
+        marketingChatInput.value = "Draft a social media campaign for this week's best-selling produce, with 2-3 caption variants.";
+        submitMarketingChat(marketingChatInput.value).then(() => marketingChatInput.value = '');
+        document.getElementById('tab-marketing').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showToast('info', 'Social Media Campaign', 'Drafting a campaign — once you like a caption, generate a matching image below.');
         break;
       case 'predict-revenue':
-        showToast('info', 'Revenue Forecasting', "This capability isn't connected to a backend yet — coming soon.");
+        showForecastModal();
         break;
       case 'inventory-issues':
-        showToast('info', 'Inventory Monitoring', 'No inventory source is connected yet — see the Sales Analytics panel to connect one.');
+        document.getElementById('inventoryAlertsBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        loadInventory().then(alerts => {
+          if (alerts.length === 0) showToast('success', 'Inventory', 'All sample stock levels look healthy right now.');
+          else showToast('info', 'Inventory', `${alerts.length} product${alerts.length > 1 ? 's' : ''} need attention — see Sales Analytics.`);
+        });
         break;
       case 'weekly-report':
-        showToast('info', 'Weekly Reports', "Report generation isn't connected to a backend yet — coming soon.");
+        showReportsModal();
         break;
     }
   });
