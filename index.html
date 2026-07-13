@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GreenGo · AI Operating System</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" />
+<style>
+  :root{
+    --gg-green:#2f9e44;
+    --gg-green-dark:#1c6e2b;
+    --gg-green-darker:#123f19;
+    --gg-orange:#f08c00;
+    --gg-red:#e03131;
+    --gg-blue:#206bc4;
+    --gg-blue-dark:#1a56a0;
+    --gg-violet:#7048e8;
+
+    --gg-bg:#f4f6f8;
+    --gg-surface:#ffffff;
+    --gg-surface-2:#fbfcfd;
+    --gg-border:#e8ecef;
+    --gg-ink:#1a2332;
+    --gg-muted:#8a94a6;
+    --gg-bot-bubble:#f1f3f5;
+    --gg-input-bg:#ffffff;
+    --gg-card-shadow:0 1px 3px rgba(16,24,32,.04);
+    --gg-card-shadow-hover:0 10px 28px rgba(16,24,32,.09);
+    --gg-img-shadow:0 4px 16px rgba(16,24,32,.12);
+    --gg-progress-track:#e6e9ed;
+
+    --gg-radius:14px;
+    --gg-radius-sm:9px;
+    --gg-radius-pill:999px;
+  }
+  [data-bs-theme="dark"]{
+    --gg-bg:#0a0c10;
+    --gg-surface:#14171c;
+    --gg-surface-2:#181c22;
+    --gg-border:rgba(255,255,255,.08);
+    --gg-ink:#e7ebf0;
+    --gg-muted:#8b93a1;
+    --gg-bot-bubble:#1e242c;
+    --gg-input-bg:#0e1116;
+    --gg-card-shadow:0 4px 16px rgba(0,0,0,.35);
+    --gg-card-shadow-hover:0 14px 36px rgba(0,0,0,.5);
+    --gg-img-shadow:0 4px 16px rgba(0,0,0,.45);
+    --gg-progress-track:rgba(255,255,255,.08);
+  }
+  *{ box-sizing:border-box; }
+  html, body{
+    background:var(--gg-bg);
+    color:var(--gg-ink);
+    font-feature-settings:"cv02","cv03","cv04","cv11";
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:rgba(47,158,68,.28); }
+  a{ text-decoration:none; }
+
+  /* ---------- THEME TOGGLE ---------- */
+  .gg-theme-toggle{
+    display:inline-flex; border-radius:var(--gg-radius-sm); overflow:hidden;
+    border:1px solid rgba(255,255,255,.35);
+  }
+  .gg-theme-btn{
+    background:transparent; border:none; color:#fff; font-weight:600; font-size:.78rem;
+    padding:.4rem .65rem; display:flex; align-items:center; gap:.3rem; cursor:pointer;
+  }
+  .gg-theme-btn.active{ background:rgba(255,255,255,.95); color:var(--gg-green-dark); }
+  .gg-theme-btn:not(.active):hover{ background:rgba(255,255,255,.16); }
+
+  /* ---------- HERO / CONTROL CENTER ---------- */
+  .gg-hero{
+    position:relative;
+    min-height:172px;
+    display:flex;
+    align-items:center;
+    background:linear-gradient(120deg, #0d2b13 0%, #123f19 45%, #1c6e2b 100%);
+    overflow:hidden;
+  }
+  .gg-hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background:
+      radial-gradient(600px 300px at 15% 0%, rgba(255,255,255,.08), transparent 60%),
+      radial-gradient(500px 260px at 100% 100%, rgba(47,158,68,.35), transparent 60%);
+    pointer-events:none;
+  }
+  .gg-hero-content{ position:relative; z-index:1; width:100%; padding:1.5rem 0; }
+  .gg-logo-badge{
+    width:46px; height:46px; border-radius:13px;
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.35);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.35rem; color:#fff;
+    box-shadow:0 4px 14px rgba(0,0,0,.25);
+  }
+  .gg-hero-title{
+    font-size:1.35rem; font-weight:700; color:#fff;
+    letter-spacing:-0.01em; line-height:1.2;
+    display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
+  }
+  .gg-hero-subtitle{
+    color:rgba(255,255,255,.78); font-size:.8rem; margin-top:.15rem;
+    display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
+  }
+  .gg-env-badge{
+    font-size:.66rem; font-weight:700; letter-spacing:.05em;
+    color:#e6fcec; background:rgba(47,158,68,.28);
+    border:1px solid rgba(120,220,140,.4);
+    padding:.28rem .6rem; border-radius:var(--gg-radius-pill);
+    text-transform:uppercase;
+  }
+  .gg-sync-dot{
+    width:6px; height:6px; border-radius:50%; background:#69db7c; display:inline-block;
+    box-shadow:0 0 0 3px rgba(105,219,124,.25);
+    animation: gg-pulse 2s infinite;
+  }
+  @keyframes gg-pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.4; } }
+  .gg-icon-btn{
+    width:36px; height:36px; border-radius:10px;
+    display:inline-flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.28);
+    color:#fff; position:relative; cursor:pointer; transition:background .15s ease, transform .15s ease;
+  }
+  .gg-icon-btn:hover{ background:rgba(255,255,255,.22); color:#fff; transform:translateY(-1px); }
+  .gg-icon-btn .badge-dot{
+    position:absolute; top:-2px; right:-2px; width:9px; height:9px; border-radius:50%;
+    background:var(--gg-red); border:2px solid #123f19;
+  }
+  #refreshBtn{
+    background:rgba(255,255,255,.95); border:none; color:var(--gg-green-dark); font-weight:600;
+  }
+  #refreshBtn:hover{ background:#fff; color:var(--gg-green-darker); }
+  .gg-social-links{ display:inline-flex; align-items:center; gap:.35rem; }
+  .gg-social-link{
+    width:24px; height:24px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.28);
+    color:rgba(255,255,255,.85); font-size:.72rem;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .gg-social-link:hover{ background:rgba(255,255,255,.26); color:#fff; transform:translateY(-1px); }
+  .gg-user-chip{
+    display:flex; align-items:center; gap:.5rem; background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.28); border-radius:var(--gg-radius-pill);
+    padding:.28rem .7rem .28rem .32rem; color:#fff; cursor:pointer;
+  }
+  .gg-user-avatar{
+    width:26px; height:26px; border-radius:50%; background:var(--gg-green);
+    display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:700; color:#fff;
+  }
+  .gg-user-chip .gg-user-name{ font-size:.8rem; font-weight:600; }
+
+  /* ---------- LAYOUT / CARDS ---------- */
+  .page-body{ padding-top:1.5rem; }
+  .card{
+    background:var(--gg-surface);
+    border:1px solid var(--gg-border);
+    box-shadow:var(--gg-card-shadow);
+    border-radius:var(--gg-radius);
+    color:var(--gg-ink);
+    transition:box-shadow .2s ease, transform .2s ease;
+  }
+  .card-header{
+    border-bottom:1px solid var(--gg-border);
+    padding:1.1rem 1.3rem;
+  }
+  .card-body{ padding:1.3rem; }
+  .card-title{ font-weight:650; font-size:1rem; color:var(--gg-ink); letter-spacing:-0.01em; }
+  .card-subtitle{ font-size:.79rem; color:var(--gg-muted); margin-top:.15rem; }
+  .card-accent-green{ border-top:3px solid var(--gg-green); }
+  .card-accent-orange{ border-top:3px solid var(--gg-orange); }
+  .card-accent-blue{ border-top:3px solid var(--gg-blue); }
+  .card-accent-violet{ border-top:3px solid var(--gg-violet); }
+
+  .gg-section-title{
+    font-size:.72rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--gg-muted); margin-bottom:.6rem; display:flex; align-items:center; gap:.4rem;
+  }
+
+  /* ---------- KPI CARDS ---------- */
+  .kpi-card{ background:var(--gg-surface); border:1px solid var(--gg-border); cursor:default; }
+  .kpi-card:hover{ box-shadow:var(--gg-card-shadow-hover); transform:translateY(-2px); }
+  .kpi-icon{
+    width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-size:1.05rem; margin-bottom:.6rem;
+  }
+  .kpi-card .kpi-value{ font-size:1.5rem; font-weight:700; color:var(--gg-ink); letter-spacing:-0.02em; }
+  .kpi-card .kpi-label{ font-size:.78rem; color:var(--gg-muted); font-weight:600; }
+  .kpi-card .progress{ height:6px; border-radius:4px; background:var(--gg-progress-track); }
+
+  /* skeleton shimmer */
+  .gg-skel{
+    position:relative; overflow:hidden; background:var(--gg-progress-track);
+    border-radius:6px; display:inline-block;
+  }
+  .gg-skel::after{
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+    transform:translateX(-100%); animation:gg-shimmer 1.35s infinite;
+  }
+  [data-bs-theme="dark"] .gg-skel::after{ background:linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent); }
+  @keyframes gg-shimmer{ 100%{ transform:translateX(100%); } }
+  .gg-skel-text{ height:.85rem; width:70%; margin-bottom:.4rem; }
+  .gg-skel-value{ height:1.5rem; width:55%; margin-bottom:.6rem; }
+  .gg-skel-bar{ height:6px; width:100%; }
+  .gg-skel-chart{ height:220px; width:100%; border-radius:var(--gg-radius-sm); }
+  .gg-skel-row{ height:2.2rem; width:100%; margin-bottom:.5rem; }
+
+  /* ---------- QUICK ACTIONS ---------- */
+  .gg-qa-scroll{
+    display:flex; gap:.6rem; overflow-x:auto; padding-bottom:.3rem;
+    scrollbar-width:thin;
+  }
+  .gg-qa-scroll::-webkit-scrollbar{ height:6px; }
+  .gg-qa-scroll::-webkit-scrollbar-thumb{ background:var(--gg-border); border-radius:4px; }
+  .gg-qa-btn{
+    flex:0 0 auto; display:flex; align-items:center; gap:.5rem;
+    background:var(--gg-surface); border:1px solid var(--gg-border); color:var(--gg-ink);
+    border-radius:var(--gg-radius-pill); padding:.55rem 1rem; font-size:.83rem; font-weight:600;
+    white-space:nowrap; cursor:pointer; transition:all .15s ease;
+  }
+  .gg-qa-btn:hover{ border-color:var(--gg-green); color:var(--gg-green-dark); transform:translateY(-1px); box-shadow:var(--gg-card-shadow-hover); }
+  [data-bs-theme="dark"] .gg-qa-btn:hover{ color:#69db7c; }
+  .gg-qa-btn i{ font-size:1rem; color:var(--gg-green); }
+
+  /* ---------- EMPTY STATES ---------- */
+  .gg-empty{ text-align:center; padding:2.2rem 1rem; }
+  .gg-empty-icon{
+    width:56px; height:56px; border-radius:50%; background:var(--gg-bg);
+    border:1px solid var(--gg-border);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.4rem; color:var(--gg-muted); margin:0 auto 1rem;
+  }
+  .gg-empty-title{ font-weight:650; font-size:.92rem; color:var(--gg-ink); }
+  .gg-empty-desc{ color:var(--gg-muted); font-size:.8rem; max-width:340px; margin:.35rem auto 1rem; line-height:1.5; }
+
+  /* ---------- CHAT / COPILOT ---------- */
+  .gg-copilot-tabs .nav-link{
+    color:var(--gg-muted); font-weight:600; font-size:.85rem; border:none; border-radius:0;
+    border-bottom:2px solid transparent; padding:.7rem .2rem; margin-right:1.4rem;
+  }
+  .gg-copilot-tabs .nav-link.active{ color:var(--gg-ink); background:transparent; border-bottom-color:var(--gg-green); }
+  .gg-copilot-tabs .nav-link i{ margin-right:.35rem; }
+
+  .gg-chip{
+    font-size:.76rem; font-weight:600; padding:.35rem .7rem; border-radius:var(--gg-radius-pill);
+    background:var(--gg-surface-2); border:1px solid var(--gg-border); color:var(--gg-ink);
+    cursor:pointer; transition:all .15s ease; white-space:nowrap;
+  }
+  .gg-chip:hover{ border-color:var(--gg-green); color:var(--gg-green-dark); }
+  [data-bs-theme="dark"] .gg-chip:hover{ color:#69db7c; }
+
+  #chatLog, #competitorChatLog, #marketingChatLog{ max-height:300px; overflow-y:auto; padding-right:.2rem; }
+  .gg-msg-row{ display:flex; gap:.55rem; margin-bottom:.7rem; align-items:flex-start; }
+  .gg-msg-row.user{ flex-direction:row-reverse; }
+  .gg-msg-avatar{
+    width:26px; height:26px; border-radius:50%; flex:0 0 26px;
+    display:flex; align-items:center; justify-content:center; font-size:.72rem; color:#fff; margin-top:.1rem;
+  }
+  .gg-msg-avatar.bot{ background:var(--gg-green); }
+  .gg-msg-avatar.bot-blue{ background:var(--gg-blue); }
+  .chat-bubble{ border-radius:12px; padding:.55rem .85rem; max-width:78%; font-size:.87rem; line-height:1.45; }
+  .chat-bubble.user{ background:var(--gg-green); color:#fff; border-bottom-right-radius:4px; }
+  .chat-bubble.user-blue{ background:var(--gg-blue); color:#fff; border-bottom-right-radius:4px; }
+  .chat-bubble.bot{ background:var(--gg-bot-bubble); color:var(--gg-ink); border:1px solid var(--gg-border); border-bottom-left-radius:4px; }
+  .gg-typing{ display:inline-flex; gap:3px; align-items:center; padding:.2rem 0; }
+  .gg-typing span{ width:5px; height:5px; border-radius:50%; background:var(--gg-muted); animation:gg-typing-bounce 1.1s infinite; }
+  .gg-typing span:nth-child(2){ animation-delay:.15s; }
+  .gg-typing span:nth-child(3){ animation-delay:.3s; }
+  @keyframes gg-typing-bounce{ 0%,60%,100%{ transform:translateY(0); opacity:.5; } 30%{ transform:translateY(-3px); opacity:1; } }
+
+  .btn{ border-radius:var(--gg-radius-sm); transition:transform .1s ease, box-shadow .15s ease; }
+  .btn:active{ transform:scale(.97); }
+  .btn-primary{ background:var(--gg-blue); border-color:var(--gg-blue); }
+  .btn-primary:hover{ background:var(--gg-blue-dark); border-color:var(--gg-blue-dark); }
+  .btn-success{ background:var(--gg-green); border-color:var(--gg-green); }
+  .btn-success:hover{ background:var(--gg-green-dark); border-color:var(--gg-green-dark); }
+  #genImageResult img{ max-width:100%; border-radius:var(--gg-radius); box-shadow:var(--gg-img-shadow); animation:gg-fade-in .35s ease; }
+  @keyframes gg-fade-in{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+  .placeholder-note{ font-size:.85rem; color:var(--gg-muted); }
+  .table-vcenter th{ font-size:.7rem; text-transform:uppercase; letter-spacing:.04em; color:var(--gg-muted); font-weight:650; border-color:var(--gg-border); }
+  .table-vcenter td{ color:var(--gg-ink); border-color:var(--gg-border); font-size:.85rem; }
+  [data-bs-theme="dark"] .btn-close{ filter:invert(1) grayscale(100%) brightness(200%); opacity:.75; }
+  [data-bs-theme="dark"] .btn-close:hover{ opacity:1; }
+  .form-control{ background:var(--gg-input-bg); border-color:var(--gg-border); color:var(--gg-ink); border-radius:var(--gg-radius-sm); }
+  .form-control:focus{ background:var(--gg-input-bg); color:var(--gg-ink); border-color:var(--gg-green); box-shadow:0 0 0 3px rgba(47,158,68,.14); }
+  .form-control::placeholder{ color:var(--gg-muted); }
+  footer.footer{ color:var(--gg-muted); font-size:.8rem; }
+
+  /* ---------- TOP CUSTOMERS / TIMELINE ---------- */
+  .gg-cust-row{ display:flex; align-items:center; gap:.7rem; padding:.5rem 0; border-bottom:1px solid var(--gg-border); }
+  .gg-cust-row:last-child{ border-bottom:none; }
+  .gg-cust-avatar{
+    width:32px; height:32px; border-radius:50%; background:var(--gg-bg); border:1px solid var(--gg-border);
+    display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:700; color:var(--gg-green-dark); flex:0 0 32px;
+  }
+  [data-bs-theme="dark"] .gg-cust-avatar{ color:#69db7c; }
+  .gg-cust-name{ font-size:.85rem; font-weight:600; }
+  .gg-cust-sub{ font-size:.72rem; color:var(--gg-muted); }
+  .gg-cust-amount{ font-weight:700; font-size:.85rem; margin-left:auto; }
+
+  /* ---------- ENTERPRISE TILES ---------- */
+  .gg-ent-tile{
+    display:flex; flex-direction:column; align-items:flex-start; gap:.55rem;
+    background:var(--gg-surface); border:1px solid var(--gg-border); border-radius:var(--gg-radius-sm);
+    padding:.9rem; cursor:pointer; transition:all .15s ease; height:100%;
+  }
+  .gg-ent-tile:hover{ box-shadow:var(--gg-card-shadow-hover); transform:translateY(-2px); border-color:var(--gg-green); }
+  .gg-ent-tile i{ font-size:1.15rem; color:var(--gg-green); }
+  .gg-ent-tile .gg-ent-label{ font-size:.8rem; font-weight:650; }
+  .gg-ent-tile .gg-ent-desc{ font-size:.72rem; color:var(--gg-muted); }
+
+  /* ---------- TOASTS ---------- */
+  #toastStack{ position:fixed; top:1rem; right:1rem; z-index:2000; display:flex; flex-direction:column; gap:.55rem; max-width:340px; }
+  .gg-toast{
+    background:var(--gg-surface); border:1px solid var(--gg-border); border-radius:var(--gg-radius-sm);
+    box-shadow:var(--gg-card-shadow-hover); padding:.7rem .9rem; display:flex; gap:.6rem; align-items:flex-start;
+    animation:gg-toast-in .25s ease; border-left:3px solid var(--gg-muted);
+  }
+  .gg-toast.success{ border-left-color:var(--gg-green); }
+  .gg-toast.error{ border-left-color:var(--gg-red); }
+  .gg-toast.info{ border-left-color:var(--gg-blue); }
+  .gg-toast i{ font-size:1.05rem; margin-top:.1rem; }
+  .gg-toast.success i{ color:var(--gg-green); }
+  .gg-toast.error i{ color:var(--gg-red); }
+  .gg-toast.info i{ color:var(--gg-blue); }
+  .gg-toast .gg-toast-title{ font-size:.82rem; font-weight:650; }
+  .gg-toast .gg-toast-msg{ font-size:.76rem; color:var(--gg-muted); }
+  .gg-toast.gg-toast-out{ animation:gg-toast-out .2s ease forwards; }
+  @keyframes gg-toast-in{ from{ opacity:0; transform:translateX(16px); } to{ opacity:1; transform:translateX(0); } }
+  @keyframes gg-toast-out{ to{ opacity:0; transform:translateX(16px); } }
+
+  @media (max-width:767px){
+    .gg-hero-title{ font-size:1.15rem; }
+    .card-body{ padding:1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="toastStack"></div>
+
+<header class="gg-hero d-print-none">
+  <div class="container-xl gg-hero-content">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <span class="gg-logo-badge"><i class="ti ti-leaf"></i></span>
+        <div>
+          <div class="gg-hero-title">
+            GreenGo
+            <span class="gg-env-badge">Test Environment</span>
+          </div>
+          <div class="gg-hero-subtitle">
+            <span><span class="gg-sync-dot"></span> Last sync: <span id="lastSyncTime">—</span></span>
+            <span class="gg-social-links">
+              <a href="https://www.greengo.it.com/?srsltid=AfmBOopGmGsMw0HAn30KIq2zYJGYUnPh41I_sYV0pn1SSk5Dxpn87SY5" target="_blank" rel="noopener" class="gg-social-link" title="GreenGo Store website" aria-label="GreenGo Store website"><i class="ti ti-world"></i></a>
+              <a href="https://www.facebook.com/p/GreenGo-61580159265201/" target="_blank" rel="noopener" class="gg-social-link" title="GreenGo on Facebook" aria-label="GreenGo on Facebook"><i class="ti ti-brand-facebook"></i></a>
+              <a href="https://www.instagram.com/greengo.online/" target="_blank" rel="noopener" class="gg-social-link" title="GreenGo on Instagram" aria-label="GreenGo on Instagram"><i class="ti ti-brand-instagram"></i></a>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+
+        <div class="dropdown">
+          <button class="gg-icon-btn" type="button" data-bs-toggle="dropdown" title="Notifications" aria-label="Notifications">
+            <i class="ti ti-bell"></i>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end p-3" style="width:260px;">
+            <div class="gg-empty" style="padding:.5rem 0;">
+              <div class="gg-empty-icon" style="width:42px;height:42px;font-size:1.1rem;"><i class="ti ti-bell-off"></i></div>
+              <div class="gg-empty-title" style="font-size:.85rem;">No notifications yet</div>
+              <div class="gg-empty-desc" style="font-size:.74rem;">You'll see order alerts and system updates here once notifications are enabled.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dropdown">
+          <button class="gg-icon-btn" type="button" data-bs-toggle="dropdown" title="More tools" aria-label="More tools">
+            <i class="ti ti-grid-dots"></i>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end p-2" style="width:220px;">
+            <button type="button" class="dropdown-item gg-ent-link" data-feature="Audit Logs" data-desc="Track every action taken across the dashboard — logins, data refreshes, and assistant queries."><i class="ti ti-history me-2"></i>Audit Logs</button>
+            <button type="button" class="dropdown-item gg-ent-link" data-feature="Reports" data-desc="Schedule and export polished PDF/CSV reports of your sales performance."><i class="ti ti-report me-2"></i>Reports</button>
+            <button type="button" class="dropdown-item gg-ent-link" data-feature="Exports" data-desc="Export any table or chart on this dashboard to CSV or Excel."><i class="ti ti-file-export me-2"></i>Exports</button>
+            <button type="button" class="dropdown-item gg-ent-link" data-feature="User Roles" data-desc="Invite teammates and control what each role can see and do."><i class="ti ti-users-group me-2"></i>User Roles</button>
+            <div class="dropdown-divider"></div>
+            <button type="button" class="dropdown-item gg-ent-link" data-feature="Integrations" data-desc="Connect GreenGo to your POS, accounting, and marketing tools."><i class="ti ti-plug me-2"></i>Integrations</button>
+            <button type="button" class="dropdown-item gg-ent-link" data-feature="API Keys" data-desc="Generate scoped API keys to access GreenGo data programmatically."><i class="ti ti-key me-2"></i>API Keys</button>
+            <button type="button" class="dropdown-item gg-ent-link" data-feature="Settings" data-desc="Manage environment, branding, and notification preferences."><i class="ti ti-settings me-2"></i>Settings</button>
+          </div>
+        </div>
+
+        <div class="gg-theme-toggle">
+          <button type="button" id="themeLightBtn" class="gg-theme-btn" title="Light theme"><i class="ti ti-sun"></i> Light</button>
+          <button type="button" id="themeDarkBtn" class="gg-theme-btn" title="Black theme"><i class="ti ti-moon"></i> Black</button>
+        </div>
+
+        <button id="refreshBtn" class="btn btn-sm">
+          <i class="ti ti-refresh"></i> Refresh
+        </button>
+
+        <div class="dropdown">
+          <div class="gg-user-chip" data-bs-toggle="dropdown">
+            <span class="gg-user-avatar">A</span>
+            <span class="gg-user-name d-none d-sm-inline">Admin</span>
+            <i class="ti ti-chevron-down" style="font-size:.75rem;"></i>
+          </div>
+          <div class="dropdown-menu dropdown-menu-end p-2" style="width:200px;">
+            <div class="px-2 py-1">
+              <div style="font-size:.82rem; font-weight:650;">Admin</div>
+              <div style="font-size:.72rem; color:var(--gg-muted);">GreenGo · Test Environment</div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <button type="button" class="dropdown-item gg-ent-link" data-feature="Settings" data-desc="Manage environment, branding, and notification preferences."><i class="ti ti-settings me-2"></i>Account settings</button>
+            <button type="button" class="dropdown-item" id="signOutBtn"><i class="ti ti-logout-2 me-2"></i>Sign out</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="page-wrapper">
+  <div class="page-body">
+    <div class="container-xl">
+
+      <!-- QUICK ACTIONS -->
+      <div class="gg-section-title"><i class="ti ti-bolt"></i> Quick actions</div>
+      <div class="gg-qa-scroll mb-4">
+        <button type="button" class="gg-qa-btn" data-qa="sales-today"><i class="ti ti-chart-line"></i> Analyze today's sales</button>
+        <button type="button" class="gg-qa-btn" data-qa="predict-revenue"><i class="ti ti-trending-up"></i> Predict next week revenue</button>
+        <button type="button" class="gg-qa-btn" data-qa="inventory-issues"><i class="ti ti-alert-triangle"></i> Find inventory issues</button>
+        <button type="button" class="gg-qa-btn" data-qa="social-campaign"><i class="ti ti-speakerphone"></i> Generate social media campaign</button>
+        <button type="button" class="gg-qa-btn" data-qa="compare-competitors"><i class="ti ti-telescope"></i> Compare competitors</button>
+        <button type="button" class="gg-qa-btn" data-qa="weekly-report"><i class="ti ti-report-analytics"></i> Generate weekly report</button>
+      </div>
+
+      <!-- KPI ROW -->
+      <div class="gg-section-title"><i class="ti ti-dashboard"></i> Overview</div>
+      <div id="kpiRow" class="row row-deck row-cards mb-1">
+        <!-- filled by JS; skeletons shown until first load resolves -->
+      </div>
+      <div id="kpiPlaceholderNote" class="placeholder-note mb-4" style="display:none;">
+        <div class="gg-empty py-3">
+          <div class="gg-empty-icon"><i class="ti ti-plug-connected-x"></i></div>
+          <div class="gg-empty-title">KPI data source isn't connected yet</div>
+          <div class="gg-empty-desc">Once the live Google Sheet is wired in, revenue, orders, and target progress will populate here automatically.</div>
+        </div>
+      </div>
+      <div class="mb-4"></div>
+
+      <!-- SALES ANALYTICS -->
+      <div class="row row-deck row-cards mb-4">
+        <div class="col-12">
+          <div class="card card-accent-green">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="ti ti-chart-line text-success me-1"></i> Sales Analytics</h3>
+                <div class="card-subtitle">Revenue, products, channels, customers and orders — loads automatically, aggregated server-side by the n8n workflow</div>
+              </div>
+              <div class="card-actions d-flex gap-2">
+                <button id="generateGraphsBtn" class="btn btn-sm btn-outline-success" title="Refresh charts">
+                  <i class="ti ti-refresh"></i>
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+
+              <div id="graphsSkeleton" class="row row-cards">
+                <div class="col-lg-6"><div class="gg-skel gg-skel-chart"></div></div>
+                <div class="col-lg-6"><div class="gg-skel gg-skel-chart"></div></div>
+                <div class="col-lg-6 mt-3"><div class="gg-skel gg-skel-chart" style="height:200px;"></div></div>
+                <div class="col-lg-6 mt-3"><div class="gg-skel gg-skel-chart" style="height:200px;"></div></div>
+              </div>
+
+              <div id="graphsPlaceholderNote" class="gg-empty" style="display:none;">
+                <div class="gg-empty-icon"><i class="ti ti-chart-bar"></i></div>
+                <div class="gg-empty-title">Could not reach the charts endpoint</div>
+                <div class="gg-empty-desc">We'll keep this section ready to populate the moment the workflow responds.</div>
+                <button type="button" class="btn btn-sm btn-success" id="retryGraphsBtn"><i class="ti ti-refresh"></i> Try again</button>
+              </div>
+
+              <div id="graphsContainer" style="display:none;">
+                <div class="row row-cards">
+                  <div class="col-lg-6">
+                    <div class="text-secondary mb-1" style="font-size:.8rem; font-weight:600;">Revenue trend</div>
+                    <canvas id="revenueChart" height="210"></canvas>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="text-secondary mb-1" style="font-size:.8rem; font-weight:600;">Top products by revenue</div>
+                    <canvas id="productsChart" height="210"></canvas>
+                  </div>
+                  <div class="col-lg-6 mt-4">
+                    <div class="text-secondary mb-1" style="font-size:.8rem; font-weight:600;">Orders by channel</div>
+                    <canvas id="channelChart" height="200"></canvas>
+                  </div>
+                  <div class="col-lg-6 mt-4">
+                    <div class="text-secondary mb-2" style="font-size:.8rem; font-weight:600;">Top customers</div>
+                    <div id="topCustomersBox"></div>
+                  </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="row row-cards">
+                  <div class="col-lg-6">
+                    <div class="text-secondary mb-2" style="font-size:.8rem; font-weight:600;">Orders timeline</div>
+                    <div id="ordersTimelineBox" style="max-height:260px; overflow-y:auto;"></div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="text-secondary mb-2" style="font-size:.8rem; font-weight:600;">Inventory alerts</div>
+                    <div class="gg-empty" style="padding:1.2rem .5rem;">
+                      <div class="gg-empty-icon"><i class="ti ti-package"></i></div>
+                      <div class="gg-empty-title" style="font-size:.85rem;">No inventory source connected</div>
+                      <div class="gg-empty-desc" style="font-size:.76rem;">Low-stock and out-of-stock alerts will appear here once an inventory feed is linked.</div>
+                      <button type="button" class="btn btn-sm btn-outline-secondary gg-ent-link" data-feature="Integrations" data-desc="Connect GreenGo to your POS or inventory system to unlock stock alerts.">Connect a source</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion mt-4" id="rawDataAccordion">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#rawDataCollapse">
+                        <i class="ti ti-table me-2"></i> View raw sheet data
+                      </button>
+                    </h2>
+                    <div id="rawDataCollapse" class="accordion-collapse collapse" data-bs-parent="#rawDataAccordion">
+                      <div class="accordion-body">
+                        <h4>Sales Orders</h4>
+                        <div class="table-responsive mb-4">
+                          <table class="table table-vcenter card-table" id="salesOrdersTable">
+                            <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th><th>Channel</th></tr></thead>
+                            <tbody></tbody>
+                          </table>
+                        </div>
+                        <h4>Order Lines</h4>
+                        <div class="table-responsive mb-4">
+                          <table class="table table-vcenter card-table" id="orderLinesTable">
+                            <thead><tr><th>Order ID</th><th>Product</th><th>Qty</th><th>Unit Price</th><th>Line Revenue</th></tr></thead>
+                            <tbody></tbody>
+                          </table>
+                        </div>
+                        <h4>KPIs</h4>
+                        <div class="table-responsive">
+                          <table class="table table-vcenter card-table" id="kpisTable">
+                            <thead><tr><th>KPI</th><th>Current</th><th>Target</th></tr></thead>
+                            <tbody></tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- hidden legacy trigger preserved for compatibility -->
+              <button id="loadTablesBtn" style="display:none;"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI BUSINESS COPILOT -->
+      <div class="row row-deck row-cards mb-4">
+        <div class="col-12">
+          <div class="card card-accent-violet">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="ti ti-sparkles text-violet me-1" style="color:var(--gg-violet);"></i> AI Business Copilot</h3>
+                <div class="card-subtitle">Ask questions in plain language — sales, competitors, and marketing, all in one place</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <ul class="nav gg-copilot-tabs mb-3" role="tablist">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-sales" type="button"><i class="ti ti-message-chatbot"></i>Sales Assistant</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-competitor" type="button"><i class="ti ti-telescope"></i>Competitor Intelligence</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-marketing" type="button"><i class="ti ti-speakerphone"></i>Marketing Assistant</button></li>
+              </ul>
+
+              <div class="tab-content">
+
+                <!-- SALES ASSISTANT -->
+                <div class="tab-pane fade show active" id="tab-sales">
+                  <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button type="button" class="gg-chip" data-fill="chatInput" data-prompt="What was our revenue this week?">Revenue this week?</button>
+                    <button type="button" class="gg-chip" data-fill="chatInput" data-prompt="Which products are selling best?">Best-selling products</button>
+                    <button type="button" class="gg-chip" data-fill="chatInput" data-prompt="How many pending orders do we have?">Pending orders</button>
+                    <button type="button" class="gg-chip" data-fill="chatInput" data-prompt="Summarize today's KPIs vs target.">KPIs vs target</button>
+                  </div>
+                  <div id="chatLog" class="mb-3"></div>
+                  <div id="chatPlaceholderNote" class="placeholder-note mb-2" style="display:none;">
+                    <i class="ti ti-plug-connected-x"></i> Chat endpoint isn't wired up yet — coming soon.
+                  </div>
+                  <form id="chatForm" class="input-group">
+                    <input type="text" id="chatInput" class="form-control" placeholder="Ask about sales, orders, KPIs..." autocomplete="off" />
+                    <button class="btn btn-success" type="submit"><i class="ti ti-send"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" id="closeChatBtn" title="New conversation" style="display:none;"><i class="ti ti-plus"></i></button>
+                  </form>
+                </div>
+
+                <!-- COMPETITOR INTELLIGENCE -->
+                <div class="tab-pane fade" id="tab-competitor">
+                  <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button type="button" class="gg-chip" data-fill="competitorChatInput" data-prompt="Who are my competitors in Alexandria?">Who are my competitors?</button>
+                    <button type="button" class="gg-chip" data-fill="competitorChatInput" data-prompt="What is today's price for mango in Alexandria?">Mango price today</button>
+                    <button type="button" class="gg-chip" data-fill="competitorChatInput" data-prompt="Find fresh veg delivery competitors in Alexandria.">Find delivery competitors</button>
+                  </div>
+                  <div id="competitorChatLog" class="mb-3"></div>
+                  <div id="competitorChatPlaceholderNote" class="placeholder-note mb-2" style="display:none;">
+                    <i class="ti ti-plug-connected-x"></i> Competitor intel endpoint isn't wired up yet.
+                  </div>
+                  <form id="competitorChatForm" class="input-group">
+                    <input type="text" id="competitorChatInput" class="form-control" placeholder="e.g. find fresh veg delivery competitors in Alexandria" autocomplete="off" />
+                    <button class="btn btn-primary" type="submit"><i class="ti ti-send"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" id="closeCompetitorChatBtn" title="New conversation" style="display:none;"><i class="ti ti-plus"></i></button>
+                  </form>
+                </div>
+
+                <!-- MARKETING ASSISTANT (UI-ready, not yet connected) -->
+                <div class="tab-pane fade" id="tab-marketing">
+                  <div class="gg-empty">
+                    <div class="gg-empty-icon"><i class="ti ti-speakerphone"></i></div>
+                    <div class="gg-empty-title">Marketing Assistant is coming soon</div>
+                    <div class="gg-empty-desc">This will help draft campaigns, captions, and promos for GreenGo's channels. The interface is ready — it just needs a backend workflow connected.</div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" disabled><i class="ti ti-clock"></i> Not connected yet</button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IMAGE GENERATOR -->
+      <div class="row row-deck row-cards mb-4">
+        <div class="col-12">
+          <div class="card card-accent-orange" id="imageGeneratorCard">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="ti ti-photo-ai text-warning me-1"></i> Social Media Image Generator</h3>
+                <div class="card-subtitle">Fruits, vegetables &amp; salads only — GreenGo's actual product range</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <form id="imageForm" class="mb-3">
+                    <div class="input-group">
+                      <input type="text" id="imageWord" class="form-control" placeholder="e.g. strawberries, kale salad, avocado..." autocomplete="off" required />
+                      <button class="btn btn-orange text-white" type="submit" id="imageBtn">
+                        <i class="ti ti-wand"></i> Create Image
+                      </button>
+                    </div>
+                  </form>
+                  <div id="genImageStatus"></div>
+                </div>
+                <div class="col-md-6">
+                  <div id="genImageSkeleton" class="gg-skel" style="display:none; height:220px; border-radius:var(--gg-radius);"></div>
+                  <div id="genImageResult" class="text-center"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENTERPRISE READY -->
+      <div class="gg-section-title"><i class="ti ti-building-skyscraper"></i> Enterprise-ready</div>
+      <div class="row row-cards mb-4">
+        <div class="col-6 col-md-3">
+          <div class="gg-ent-tile gg-ent-link" data-feature="Reports" data-desc="Schedule and export polished PDF/CSV reports of your sales performance.">
+            <i class="ti ti-report"></i>
+            <div class="gg-ent-label">Reports</div>
+            <div class="gg-ent-desc">Coming soon</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="gg-ent-tile gg-ent-link" data-feature="Exports" data-desc="Export any table or chart on this dashboard to CSV or Excel.">
+            <i class="ti ti-file-export"></i>
+            <div class="gg-ent-label">Exports</div>
+            <div class="gg-ent-desc">Coming soon</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="gg-ent-tile gg-ent-link" data-feature="User Roles" data-desc="Invite teammates and control what each role can see and do.">
+            <i class="ti ti-users-group"></i>
+            <div class="gg-ent-label">User Roles</div>
+            <div class="gg-ent-desc">Coming soon</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="gg-ent-tile gg-ent-link" data-feature="API Keys" data-desc="Generate scoped API keys to access GreenGo data programmatically.">
+            <i class="ti ti-key"></i>
+            <div class="gg-ent-label">API Keys</div>
+            <div class="gg-ent-desc">Coming soon</div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer footer-transparent d-print-none">
+        <div class="container-xl text-center py-3">
+          GreenGo Dashboard · AI Operating System · v2 · Test Environment
+        </div>
+      </footer>
+
+    </div>
+  </div>
+</div>
+
+<!-- shared "coming soon" modal for enterprise features -->
+<div class="modal modal-blur fade" id="enterpriseModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body text-center py-4">
+        <div class="gg-empty-icon" style="margin-bottom:1rem;"><i id="enterpriseModalIcon" class="ti ti-clock"></i></div>
+        <h3 id="enterpriseModalTitle">Feature</h3>
+        <div class="text-secondary" id="enterpriseModalDesc">Coming soon.</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">Got it</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+// ---------- THEME (Light / Black) ----------
+const THEME_KEY = 'greengo-dashboard-theme';
+const themeLightBtn = document.getElementById('themeLightBtn');
+const themeDarkBtn = document.getElementById('themeDarkBtn');
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-bs-theme', theme);
+  localStorage.setItem(THEME_KEY, theme);
+  themeLightBtn.classList.toggle('active', theme === 'light');
+  themeDarkBtn.classList.toggle('active', theme === 'dark');
+}
+
+themeLightBtn.addEventListener('click', () => applyTheme('light'));
+themeDarkBtn.addEventListener('click', () => applyTheme('dark'));
+applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+
+// ---------- TOASTS ----------
+function showToast(type, title, message) {
+  const stack = document.getElementById('toastStack');
+  const icon = type === 'success' ? 'ti-circle-check' : type === 'error' ? 'ti-alert-triangle' : 'ti-info-circle';
+  const el = document.createElement('div');
+  el.className = 'gg-toast ' + type;
+  el.innerHTML = `<i class="ti ${icon}"></i><div><div class="gg-toast-title">${title}</div><div class="gg-toast-msg">${message}</div></div>`;
+  stack.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('gg-toast-out');
+    setTimeout(() => el.remove(), 220);
+  }, 4200);
+}
+
+function updateLastSync() {
+  document.getElementById('lastSyncTime').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+// ---------- ANIMATED COUNTER ----------
+function animateCounter(el, endValue, duration = 700) {
+  const start = 0;
+  const startTime = performance.now();
+  function tick(now) {
+    const progress = Math.min(1, (now - startTime) / duration);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const val = start + (endValue - start) * eased;
+    el.textContent = Math.round(val).toLocaleString();
+    if (progress < 1) requestAnimationFrame(tick);
+    else el.textContent = Math.round(endValue).toLocaleString();
+  }
+  requestAnimationFrame(tick);
+}
+
+// ---------- ENTERPRISE "COMING SOON" MODAL ----------
+const enterpriseModalEl = document.getElementById('enterpriseModal');
+let enterpriseModal;
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.bootstrap) enterpriseModal = new bootstrap.Modal(enterpriseModalEl);
+});
+document.querySelectorAll('.gg-ent-link').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('enterpriseModalTitle').textContent = btn.dataset.feature || 'Feature';
+    document.getElementById('enterpriseModalDesc').textContent = btn.dataset.desc || 'This feature is coming soon.';
+    if (enterpriseModal) enterpriseModal.show();
+    else showToast('info', btn.dataset.feature || 'Feature', btn.dataset.desc || 'Coming soon.');
+  });
+});
+
+// ---------- SIGN OUT (clears the real session cookie set by middleware.js) ----------
+document.getElementById('signOutBtn').addEventListener('click', () => {
+  document.cookie = 'gg_auth=; Max-Age=0; path=/;';
+  showToast('success', 'Signed out', 'Redirecting to the sign-in screen...');
+  setTimeout(() => location.reload(), 700);
+});
+
+const N8N_BASE = 'https://askorg2026.app.n8n.cloud/webhook';
+const DASHBOARD_DATA_URL = N8N_BASE + '/tabler-dashboard-data';
+const CHAT_URL = N8N_BASE + '/tabler-chat';
+const COMPETITOR_CHAT_URL = N8N_BASE + '/tabler-competitor-chat';
+const IMAGE_URL = N8N_BASE + '/tabler-generate-image';
+const CHARTS_URL = N8N_BASE + '/tabler-charts-data';
+const SHEETS_URL = N8N_BASE + '/tabler-sheets-data';
+let sessionId = 'tabler-dash-' + Math.random().toString(36).slice(2, 10);
+let competitorSessionId = 'tabler-competitor-' + Math.random().toString(36).slice(2, 10);
+
+const KPI_ICONS = [
+  { icon: 'ti-currency-dollar', bg: 'rgba(47,158,68,.12)', color: 'var(--gg-green)' },
+  { icon: 'ti-shopping-cart', bg: 'rgba(32,107,196,.12)', color: 'var(--gg-blue)' },
+  { icon: 'ti-users', bg: 'rgba(240,140,0,.12)', color: 'var(--gg-orange)' },
+  { icon: 'ti-repeat', bg: 'rgba(112,72,232,.12)', color: 'var(--gg-violet)' }
+];
+
+function kpiSkeletonCard() {
+  return `
+    <div class="col-sm-6 col-lg-3">
+      <div class="card kpi-card">
+        <div class="card-body">
+          <div class="gg-skel" style="width:38px;height:38px;border-radius:10px;margin-bottom:.6rem;"></div>
+          <div class="gg-skel gg-skel-text"></div>
+          <div class="gg-skel gg-skel-value"></div>
+          <div class="gg-skel gg-skel-bar"></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function showKpiSkeletons() {
+  const row = document.getElementById('kpiRow');
+  row.innerHTML = kpiSkeletonCard().repeat(4);
+}
+
+// ---------- KPI DATA ----------
+async function loadKpis() {
+  const row = document.getElementById('kpiRow');
+  const note = document.getElementById('kpiPlaceholderNote');
+  showKpiSkeletons();
+  try {
+    const res = await fetch(DASHBOARD_DATA_URL, { method: 'GET' });
+    if (!res.ok) throw new Error('not connected');
+    const data = await res.json();
+    const kpis = (data.kpis && data.kpis[0] && data.kpis[0].kpis) || data.kpis || [];
+    if (!Array.isArray(kpis) || kpis.length === 0) throw new Error('empty');
+
+    row.innerHTML = kpis.map((k, i) => {
+      const current = Number(k.current_value ?? 0);
+      const target = Number(k.monthly_target ?? 0);
+      const pct = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
+      const style = KPI_ICONS[i % KPI_ICONS.length];
+      const valId = 'kpi-val-' + i;
+      return `
+        <div class="col-sm-6 col-lg-3">
+          <div class="card kpi-card">
+            <div class="card-body">
+              <div class="kpi-icon" style="background:${style.bg}; color:${style.color};"><i class="ti ${style.icon}"></i></div>
+              <div class="kpi-label">${k.kpi_name ?? 'KPI'}</div>
+              <div class="kpi-value" id="${valId}">0</div>
+              <div class="progress progress-sm mt-2">
+                <div class="progress-bar bg-success" style="width:0%;" data-target-width="${pct}"></div>
+              </div>
+              <div class="text-secondary mt-1" style="font-size:.75rem;">${pct}% of target (${target.toLocaleString()})</div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    kpis.forEach((k, i) => {
+      const el = document.getElementById('kpi-val-' + i);
+      if (el) animateCounter(el, Number(k.current_value ?? 0));
+    });
+    requestAnimationFrame(() => {
+      row.querySelectorAll('.progress-bar').forEach(bar => {
+        bar.style.width = bar.dataset.targetWidth + '%';
+      });
+    });
+
+    note.style.display = 'none';
+    updateLastSync();
+  } catch (e) {
+    row.innerHTML = '';
+    note.style.display = 'block';
+  }
+}
+
+document.getElementById('refreshBtn').addEventListener('click', () => {
+  showToast('info', 'Refreshing', 'Pulling the latest data across the dashboard...');
+  loadKpis();
+  loadCharts();
+  loadTables();
+});
+
+// ---------- GRAPHS ----------
+let revenueChartInstance, productsChartInstance, channelChartInstance;
+const generateGraphsBtn = document.getElementById('generateGraphsBtn');
+const graphsSkeleton = document.getElementById('graphsSkeleton');
+const graphsNote = document.getElementById('graphsPlaceholderNote');
+const graphsContainer = document.getElementById('graphsContainer');
+const GG_GREEN = '#2f9e44';
+const GG_ORANGE = '#f08c00';
+const GG_PALETTE = ['#2f9e44', '#f08c00', '#e03131', '#1c6e2b', '#66a80f', '#f76707'];
+
+let latestSheetsData = null;
+
+async function loadCharts() {
+  generateGraphsBtn.disabled = true;
+  graphsSkeleton.style.display = 'flex';
+  graphsNote.style.display = 'none';
+  graphsContainer.style.display = 'none';
+  try {
+    const res = await fetch(CHARTS_URL, { method: 'GET' });
+    if (!res.ok) throw new Error('not connected');
+    const data = await res.json();
+
+    graphsSkeleton.style.display = 'none';
+    graphsContainer.style.display = 'block';
+
+    const revCtx = document.getElementById('revenueChart').getContext('2d');
+    if (revenueChartInstance) revenueChartInstance.destroy();
+    revenueChartInstance = new Chart(revCtx, {
+      type: 'line',
+      data: {
+        labels: data.revenue_over_time.map(r => r.date.slice(5)),
+        datasets: [{
+          label: 'Revenue',
+          data: data.revenue_over_time.map(r => r.revenue),
+          borderColor: GG_GREEN,
+          backgroundColor: GG_GREEN + '33',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 2,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#14171c', padding: 10, cornerRadius: 8 } },
+        scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(128,128,128,.12)' } } }
+      }
+    });
+
+    const prodCtx = document.getElementById('productsChart').getContext('2d');
+    if (productsChartInstance) productsChartInstance.destroy();
+    productsChartInstance = new Chart(prodCtx, {
+      type: 'bar',
+      data: {
+        labels: data.top_products.map(p => p.product),
+        datasets: [{
+          label: 'Revenue',
+          data: data.top_products.map(p => p.revenue),
+          backgroundColor: GG_ORANGE,
+          borderRadius: 6,
+          maxBarThickness: 22
+        }]
+      },
+      options: {
+        responsive: true, indexAxis: 'y',
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#14171c', padding: 10, cornerRadius: 8 } },
+        scales: { x: { grid: { color: 'rgba(128,128,128,.12)' } }, y: { grid: { display: false } } }
+      }
+    });
+
+    const chanCtx = document.getElementById('channelChart').getContext('2d');
+    if (channelChartInstance) channelChartInstance.destroy();
+    channelChartInstance = new Chart(chanCtx, {
+      type: 'doughnut',
+      data: {
+        labels: data.channel_breakdown.map(c => c.channel),
+        datasets: [{ data: data.channel_breakdown.map(c => c.count), backgroundColor: GG_PALETTE, borderWidth: 0 }]
+      },
+      options: {
+        responsive: true, cutout: '68%',
+        plugins: { tooltip: { backgroundColor: '#14171c', padding: 10, cornerRadius: 8 } }
+      }
+    });
+
+    updateLastSync();
+  } catch (err) {
+    graphsSkeleton.style.display = 'none';
+    graphsNote.style.display = 'block';
+    graphsContainer.style.display = 'none';
+  } finally {
+    generateGraphsBtn.disabled = false;
+  }
+}
+
+generateGraphsBtn.addEventListener('click', loadCharts);
+document.getElementById('retryGraphsBtn').addEventListener('click', loadCharts);
+
+// ---------- SHEETS TABLES + DERIVED VIEWS (top customers / timeline) ----------
+const loadTablesBtn = document.getElementById('loadTablesBtn');
+
+function fillTable(tbodySelector, rows, rowFn) {
+  const tbody = document.querySelector(tbodySelector + ' tbody');
+  tbody.innerHTML = rows.map(rowFn).join('');
+}
+
+function renderTopCustomers(salesOrders) {
+  const box = document.getElementById('topCustomersBox');
+  if (!salesOrders || salesOrders.length === 0) {
+    box.innerHTML = `<div class="gg-empty" style="padding:1rem;"><div class="gg-empty-desc">No customer data yet.</div></div>`;
+    return;
+  }
+  const totals = {};
+  salesOrders.forEach(o => {
+    const name = o.customer_name || 'Unknown';
+    totals[name] = (totals[name] || 0) + Number(o.total_amount || 0);
+  });
+  const top = Object.entries(totals).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  box.innerHTML = top.map(([name, total]) => {
+    const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    return `
+      <div class="gg-cust-row">
+        <div class="gg-cust-avatar">${initials}</div>
+        <div>
+          <div class="gg-cust-name">${name}</div>
+          <div class="gg-cust-sub">Customer</div>
+        </div>
+        <div class="gg-cust-amount">${total.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderOrdersTimeline(salesOrders) {
+  const box = document.getElementById('ordersTimelineBox');
+  if (!salesOrders || salesOrders.length === 0) {
+    box.innerHTML = `<div class="gg-empty" style="padding:1rem;"><div class="gg-empty-desc">No recent orders yet.</div></div>`;
+    return;
+  }
+  const sorted = [...salesOrders].sort((a, b) => new Date(b.order_date) - new Date(a.order_date));
+  box.innerHTML = sorted.map(o => {
+    const badge = o.payment_status === 'Paid' ? 'success' : o.payment_status === 'Pending' ? 'orange' : 'secondary';
+    return `
+      <div class="gg-cust-row">
+        <div class="gg-cust-avatar"><i class="ti ti-receipt" style="font-size:.85rem;"></i></div>
+        <div>
+          <div class="gg-cust-name">${o.order_id ?? ''} · ${o.customer_name ?? ''}</div>
+          <div class="gg-cust-sub">${o.order_date ?? ''} · ${o.channel ?? ''}</div>
+        </div>
+        <div class="d-flex flex-column align-items-end ms-auto">
+          <div class="gg-cust-amount">${Number(o.total_amount ?? 0).toLocaleString()}</div>
+          <span class="badge bg-${badge}-lt" style="font-size:.65rem;">${o.payment_status ?? ''}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function loadTables() {
+  try {
+    const res = await fetch(SHEETS_URL, { method: 'GET' });
+    if (!res.ok) throw new Error('not connected');
+    const data = await res.json();
+    latestSheetsData = data;
+
+    fillTable('#salesOrdersTable', data.sales_orders || [], o => `
+      <tr>
+        <td>${o.order_id ?? ''}</td>
+        <td>${o.customer_name ?? ''}</td>
+        <td>${o.order_date ?? ''}</td>
+        <td>${Number(o.total_amount ?? 0).toLocaleString()}</td>
+        <td><span class="badge bg-${o.payment_status === 'Paid' ? 'success' : o.payment_status === 'Pending' ? 'orange' : 'secondary'}-lt">${o.payment_status ?? ''}</span></td>
+        <td>${o.channel ?? ''}</td>
+      </tr>`);
+
+    fillTable('#orderLinesTable', data.order_lines || [], l => `
+      <tr>
+        <td>${l.order_id ?? ''}</td>
+        <td>${l.product ?? ''}</td>
+        <td>${l.quantity ?? ''}</td>
+        <td>${Number(l.unit_price ?? 0).toLocaleString()}</td>
+        <td>${Number(l.line_revenue ?? 0).toLocaleString()}</td>
+      </tr>`);
+
+    fillTable('#kpisTable', data.kpis || [], k => `
+      <tr>
+        <td>${k.kpi_name ?? ''}</td>
+        <td>${Number(k.current_value ?? 0).toLocaleString()}</td>
+        <td>${Number(k.monthly_target ?? 0).toLocaleString()}</td>
+      </tr>`);
+
+    renderTopCustomers(data.sales_orders || []);
+    renderOrdersTimeline(data.sales_orders || []);
+    updateLastSync();
+  } catch (err) {
+    // Charts panel already surfaces a connection empty-state; tables quietly stay empty.
+  }
+}
+
+// ---------- AUTO-LOAD ON FIRST VISIT ----------
+document.addEventListener('DOMContentLoaded', () => {
+  loadKpis();
+  loadCharts().then(loadTables);
+});
+
+// ---------- CHAT (Sales Assistant) ----------
+const chatForm = document.getElementById('chatForm');
+const chatInput = document.getElementById('chatInput');
+const chatLog = document.getElementById('chatLog');
+const chatNote = document.getElementById('chatPlaceholderNote');
+const closeChatBtn = document.getElementById('closeChatBtn');
+
+function appendBubble(text, who) {
+  const row = document.createElement('div');
+  row.className = 'gg-msg-row ' + (who === 'user' ? 'user' : '');
+  const avatar = who === 'user' ? '' : `<div class="gg-msg-avatar bot"><i class="ti ti-sparkles" style="font-size:.7rem;"></i></div>`;
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble ' + who;
+  bubble.textContent = text;
+  row.innerHTML = avatar;
+  row.appendChild(bubble);
+  chatLog.appendChild(row);
+  chatLog.scrollTop = chatLog.scrollHeight;
+  return bubble;
+}
+
+function appendTyping(logEl, avatarClass, iconClass) {
+  const row = document.createElement('div');
+  row.className = 'gg-msg-row typing-row';
+  row.innerHTML = `<div class="gg-msg-avatar ${avatarClass}"><i class="ti ${iconClass}" style="font-size:.7rem;"></i></div>
+    <div class="chat-bubble bot"><span class="gg-typing"><span></span><span></span><span></span></span></div>`;
+  logEl.appendChild(row);
+  logEl.scrollTop = logEl.scrollHeight;
+  return row;
+}
+
+async function submitChat(msg) {
+  appendBubble(msg, 'user');
+  closeChatBtn.style.display = '';
+  const typingRow = appendTyping(chatLog, 'bot', 'ti-sparkles');
+  try {
+    const res = await fetch(CHAT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, session_id: sessionId })
+    });
+    if (!res.ok) throw new Error('not connected');
+    const data = await res.json();
+    typingRow.remove();
+    appendBubble(data.reply ?? '(no reply)', 'bot');
+    chatNote.style.display = 'none';
+  } catch (err) {
+    typingRow.remove();
+    chatNote.style.display = 'block';
+    appendBubble("Sorry, the chat backend isn't connected yet.", 'bot');
+    showToast('error', 'Sales Assistant', "Could not reach the chat backend.");
+  }
+}
+
+chatForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+  chatInput.value = '';
+  submitChat(msg);
+});
+
+closeChatBtn.addEventListener('click', () => {
+  chatLog.innerHTML = '';
+  chatNote.style.display = 'none';
+  sessionId = 'tabler-dash-' + Math.random().toString(36).slice(2, 10);
+  closeChatBtn.style.display = 'none';
+});
+
+// ---------- COMPETITOR INTEL CHAT ----------
+const competitorChatForm = document.getElementById('competitorChatForm');
+const competitorChatInput = document.getElementById('competitorChatInput');
+const competitorChatLog = document.getElementById('competitorChatLog');
+const competitorChatNote = document.getElementById('competitorChatPlaceholderNote');
+const closeCompetitorChatBtn = document.getElementById('closeCompetitorChatBtn');
+
+function appendCompetitorBubble(text, who) {
+  const row = document.createElement('div');
+  row.className = 'gg-msg-row ' + (who === 'user' ? 'user' : '');
+  const avatar = who === 'user' ? '' : `<div class="gg-msg-avatar bot-blue"><i class="ti ti-telescope" style="font-size:.7rem;"></i></div>`;
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble ' + (who === 'user' ? 'user-blue' : 'bot');
+  bubble.textContent = text;
+  row.innerHTML = avatar;
+  row.appendChild(bubble);
+  competitorChatLog.appendChild(row);
+  competitorChatLog.scrollTop = competitorChatLog.scrollHeight;
+  return bubble;
+}
+
+async function submitCompetitorChat(msg) {
+  appendCompetitorBubble(msg, 'user');
+  closeCompetitorChatBtn.style.display = '';
+  const typingRow = appendTyping(competitorChatLog, 'bot-blue', 'ti-telescope');
+  try {
+    const res = await fetch(COMPETITOR_CHAT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, session_id: competitorSessionId })
+    });
+    if (!res.ok) throw new Error('not connected');
+    const data = await res.json();
+    typingRow.remove();
+    appendCompetitorBubble(data.reply ?? '(no reply)', 'bot');
+    competitorChatNote.style.display = 'none';
+  } catch (err) {
+    typingRow.remove();
+    competitorChatNote.style.display = 'block';
+    appendCompetitorBubble("Sorry, the competitor intel backend isn't connected yet.", 'bot');
+    showToast('error', 'Competitor Intelligence', 'Could not reach the competitor intel backend.');
+  }
+}
+
+competitorChatForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const msg = competitorChatInput.value.trim();
+  if (!msg) return;
+  competitorChatInput.value = '';
+  submitCompetitorChat(msg);
+});
+
+closeCompetitorChatBtn.addEventListener('click', () => {
+  competitorChatLog.innerHTML = '';
+  competitorChatNote.style.display = 'none';
+  competitorSessionId = 'tabler-competitor-' + Math.random().toString(36).slice(2, 10);
+  closeCompetitorChatBtn.style.display = 'none';
+});
+
+// ---------- SUGGESTED PROMPT CHIPS ----------
+document.querySelectorAll('.gg-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const targetId = chip.dataset.fill;
+    const input = document.getElementById(targetId);
+    input.value = chip.dataset.prompt;
+    if (targetId === 'chatInput') submitChat(chip.dataset.prompt).then(() => { input.value = ''; });
+    else if (targetId === 'competitorChatInput') submitCompetitorChat(chip.dataset.prompt).then(() => { input.value = ''; });
+  });
+});
+
+// ---------- IMAGE GENERATOR ----------
+const imageForm = document.getElementById('imageForm');
+const imageBtn = document.getElementById('imageBtn');
+const genStatus = document.getElementById('genImageStatus');
+const genResult = document.getElementById('genImageResult');
+const genSkeleton = document.getElementById('genImageSkeleton');
+
+async function submitImage(word) {
+  genResult.innerHTML = '';
+  genSkeleton.style.display = 'block';
+  genStatus.innerHTML = '<div class="text-secondary"><span class="spinner-border spinner-border-sm text-success me-1"></span> Generating image for "' + word + '"...</div>';
+  imageBtn.disabled = true;
+  try {
+    const res = await fetch(IMAGE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word })
+    });
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const data = await res.json();
+      genSkeleton.style.display = 'none';
+      genStatus.innerHTML = `<div class="alert alert-warning mt-2 mb-0"><i class="ti ti-alert-triangle"></i> ${data.message ?? "This word is outside GreenGo's scope (fruits, vegetables, salads)."}</div>`;
+      showToast('info', 'Image Generator', data.message ?? 'Out of scope for GreenGo.');
+    } else if (res.ok) {
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      genSkeleton.style.display = 'none';
+      genStatus.innerHTML = '<div class="d-flex justify-content-between align-items-center text-success"><span><i class="ti ti-check"></i> Image generated.</span><button type="button" class="btn-close" id="closeImageBtn" aria-label="Close"></button></div>';
+      genResult.innerHTML = `<img src="${url}" alt="${word}" />`;
+      showToast('success', 'Image ready', `Generated an image for "${word}".`);
+      document.getElementById('closeImageBtn').addEventListener('click', () => {
+        genStatus.innerHTML = '';
+        genResult.innerHTML = '';
+      });
+    } else {
+      throw new Error('request failed');
+    }
+  } catch (err) {
+    genSkeleton.style.display = 'none';
+    genStatus.innerHTML = '<div class="alert alert-danger mt-2 mb-0"><i class="ti ti-alert-triangle"></i> Could not reach the image generator right now.</div>';
+    showToast('error', 'Image Generator', 'Could not reach the image generator right now.');
+  } finally {
+    imageBtn.disabled = false;
+  }
+}
+
+imageForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const word = document.getElementById('imageWord').value.trim();
+  if (!word) return;
+  submitImage(word);
+});
+
+// ---------- QUICK ACTIONS ----------
+function activateTab(paneSelector) {
+  const trigger = document.querySelector(`[data-bs-target="${paneSelector}"]`);
+  if (trigger && window.bootstrap) new bootstrap.Tab(trigger).show();
+}
+
+document.querySelectorAll('[data-qa]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const action = btn.dataset.qa;
+    switch (action) {
+      case 'sales-today':
+        activateTab('#tab-sales');
+        document.getElementById('imageGeneratorCard'); // no-op, keeps scope
+        chatInput.value = "Analyze today's sales.";
+        submitChat("Analyze today's sales.").then(() => chatInput.value = '');
+        document.getElementById('tab-sales').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'compare-competitors':
+        activateTab('#tab-competitor');
+        competitorChatInput.value = 'Compare my competitors on price and offering.';
+        submitCompetitorChat('Compare my competitors on price and offering.').then(() => competitorChatInput.value = '');
+        document.getElementById('tab-competitor').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'social-campaign':
+        document.getElementById('imageGeneratorCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById('imageWord').focus();
+        showToast('info', 'Social Media Campaign', 'Pick a product below and generate an on-brand image to kick off your campaign.');
+        break;
+      case 'predict-revenue':
+        showToast('info', 'Revenue Forecasting', "This capability isn't connected to a backend yet — coming soon.");
+        break;
+      case 'inventory-issues':
+        showToast('info', 'Inventory Monitoring', 'No inventory source is connected yet — see the Sales Analytics panel to connect one.');
+        break;
+      case 'weekly-report':
+        showToast('info', 'Weekly Reports', "Report generation isn't connected to a backend yet — coming soon.");
+        break;
+    }
+  });
+});
+</script>
+</body>
+</html>
