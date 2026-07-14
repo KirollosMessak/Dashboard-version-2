@@ -1085,7 +1085,9 @@ async function loadKpis() {
   const note = document.getElementById('kpiPlaceholderNote');
   showKpiSkeletons();
   try {
-    const res = await fetch(DASHBOARD_DATA_URL, { method: 'GET' });
+    // Note: /tabler-dashboard-data was never implemented server-side (dead reference since v1).
+    // The same KPI array is already returned by /tabler-sheets-data, so we read it from there.
+    const res = await fetch(SHEETS_URL, { method: 'GET' });
     if (!res.ok) throw new Error('not connected');
     const data = await res.json();
     const kpis = (data.kpis && data.kpis[0] && data.kpis[0].kpis) || data.kpis || [];
